@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique
+  senha     String
+  perfil    String   @default("usuario")
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orcamentos Orcamento[] // relação 1:N, um usuário pode cadastrar vários orçamentos
+
+  @@map("User") // força usar a tabela singular existente
+}
+
+model Cliente {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  telefone String
+  email    String? // opcional
+  endereco String? // rua, número, complemento
+  cidade   String?
+  estado   String?
+  cep      String?
+  cpfCnpj  String?   @unique // pode ser usado para PJ também
+  dataNasc DateTime? // útil para aniversários e marketing
+
+  veiculos   Veiculo[]
+  orcamentos Orcamento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Cliente") // força usar a tabela singular existente
+}
+
+model Veiculo {
+  id      Int     @id @default(autoincrement())
+  placa   String  @unique
+  marca   String
+  modelo  String
+  ano     Int?
+  cor     String?
+  chassi  String? @unique
+  kmAtual Int?
+
+  clienteId Int
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+
+  orcamentos Orcamento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Veiculo") // força usar a tabela singular existente
+}
+
+model Orcamento {
+  id           Int       @id @default(autoincrement())
+  status       String    @default("pendente")
+  valorTotal   Float     @default(0.0)
+  dataEmissao  DateTime  @default(now())
+  dataValidade DateTime?
+  observacoes  String?
+
+  placa String? // novo campo placa do veículo
+
+  clienteId Int
+  cliente   Cliente @relation(fields: [clienteId], references: [id])
+
+  veiculoId Int
+  veiculo   Veiculo @relation(fields: [veiculoId], references: [id])
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  itensServico ServicoOrcamento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Orcamento")
+}
+
+model Servico {
+  id        Int     @id @default(autoincrement())
+  nome      String
+  descricao String?
+  precoBase Float   @default(0.0)
+  ativo     Boolean @default(true)
+
+  orcamentos ServicoOrcamento[] // relação N:N via tabela intermediária
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("Servico")
+}
+
+model ServicoOrcamento {
+  id            Int    @id @default(autoincrement())
+  descricao     String
+  quantidade    Int    @default(1)
+  valorUnitario Float  @default(0.0)
+  desconto      Float  @default(0.0)
+
+  orcamentoId Int
+  orcamento   Orcamento @relation(fields: [orcamentoId], references: [id])
+
+  servicoId Int? // opcional, só se existir serviço cadastrado
+  servico   Servico? @relation(fields: [servicoId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ServicoOrcamento")
+}
