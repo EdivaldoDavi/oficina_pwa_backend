@@ -1,24 +1,29 @@
 // src/services/veiculoService.js
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+//const prisma = new PrismaClient();
 
 // /app/src/services/veiculoService.js
 
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
+
 exports.criarVeiculo = async (dadosVeiculo) => {
   try {
+    console.log('[veiculoService] criarVeiculo payload:', dadosVeiculo);
+
+    // Use o formato correto: { data: ... }
     const novoVeiculo = await prisma.veiculo.create({
       data: dadosVeiculo,
     });
+
+    console.log('[veiculoService] criado:', novoVeiculo);
     return novoVeiculo;
-  } catch (error) {
-    // ----> ADICIONE ESTA LINHA PARA VER O ERRO COMPLETO <----
-    console.error("DETALHES DO ERRO DO PRISMA:", error);
-    
-    // Você ainda pode lançar o erro genérico para a API, se quiser
+  } catch (err) {
+    console.error('[veiculoService] erro prisma:', err);
     throw new Error('Erro ao cadastrar o veículo.');
   }
 };
-
 exports.listarVeiculosDoCliente = async (clienteId) => {
   try {
     const veiculos = await prisma.veiculo.findMany({
