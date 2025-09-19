@@ -6,5 +6,8 @@ const { protect } = require('../midlleware/authMidleware'); // Importe o middlew
 
 router.post('/', protect, clienteController.criarCliente);
 router.get('/', clienteController.listarClientes);
-
+router.put('/:id', protect, clienteController.editarCliente);
+console.log("clienteController:", clienteController);
+// Deletar orçamento (DELETE)
+router.delete('/:id', protect, clienteController.deletarCliente);
 module.exports = router;
