@@ -2,6 +2,9 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+// src/services/ClienteService.js
+const { Prisma } = require("@prisma/client");
+
 exports.criarCliente = async (dadosCliente) => {
   try {
     const novoCliente = await prisma.cliente.create({
@@ -9,9 +12,37 @@ exports.criarCliente = async (dadosCliente) => {
     });
     return novoCliente;
   } catch (error) {
-    throw new Error('Erro ao cadastrar o cliente.');
+    console.error("Erro do Prisma ao criar cliente:", error);
+
+    if (error.code === "P2002") {
+      let camposDuplicados = [];
+
+      // Pode vir string ou array
+      const target = error.meta?.target;
+
+      if (Array.isArray(target)) {
+        camposDuplicados = target;
+      } else if (typeof target === "string") {
+        // traduz constraints conhecidas
+        if (target.includes("cpfCnpj")) camposDuplicados.push("cpf/CNPJ");
+        if (target.includes("email")) camposDuplicados.push("e-mail");
+      }
+
+      if (camposDuplicados.length > 0) {
+        throw new Error(
+          `Já existe um cliente com este(s) campo(s): ${camposDuplicados.join(", ")}.`
+        );
+      }
+
+      throw new Error("Já existe um cliente com este campo único.");
+    }
+
+    throw new Error("Erro ao cadastrar o cliente.");
   }
 };
+
+
+
 
 exports.listarClientes = async () => {
   try {

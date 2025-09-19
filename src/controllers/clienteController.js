@@ -4,11 +4,14 @@ exports.criarCliente = async (req, res) => {
   try {
     const novoCliente = await clienteService.criarCliente(req.body);
     res.status(201).json(novoCliente);
-  } catch (err) {
-    console.error("💥 Erro ao cadastrar novo cliente:", err);
-    next(err); // Passa para o middleware de erro global
+  } catch (error) {
+    console.error("Erro ao cadastrar novo cliente:", error.message);
+
+    // Aqui já vem a mensagem amigável do service
+    res.status(400).json({ error: error.message });
   }
 };
+
 
 exports.listarClientes = async (req, res) => {
   try {

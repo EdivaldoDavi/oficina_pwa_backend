@@ -7,23 +7,85 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
 });
-
+/*
 exports.criarVeiculo = async (dadosVeiculo) => {
   try {
     console.log('[veiculoService] criarVeiculo payload:', dadosVeiculo);
 
-    // Use o formato correto: { data: ... }
     const novoVeiculo = await prisma.veiculo.create({
       data: dadosVeiculo,
     });
 
     console.log('[veiculoService] criado:', novoVeiculo);
     return novoVeiculo;
+
   } catch (err) {
     console.error('[veiculoService] erro prisma:', err);
+
+    if (err.code === 'P2002') {
+      let camposDuplicados = [];
+
+      const target = err.meta?.target;
+
+      if (Array.isArray(target)) {
+        if (target.includes('placa')) camposDuplicados.push('Placa');
+        if (target.includes('chassi')) camposDuplicados.push('Chassi');
+      } else if (typeof target === 'string') {
+        if (target.includes('placa')) camposDuplicados.push('Placa');
+        if (target.includes('chassi')) camposDuplicados.push('Chassi');
+      }
+
+      if (camposDuplicados.length > 0) {
+        throw new Error(
+          `Já existe veículo com este(s) campo(s): ${camposDuplicados.join(', ')}.`
+        );
+      }
+
+      throw new Error('Já existe veículo com campo(s) único(s) duplicado(s).');
+    }
+
     throw new Error('Erro ao cadastrar o veículo.');
   }
+};*/
+
+
+exports.criarVeiculo = async (dadosVeiculo) => {
+  try {
+    const novoVeiculo = await prisma.veiculo.create({
+      data: dadosVeiculo,
+    });
+    return novoVeiculo;
+  } catch (error) {
+    console.error("Erro do Prisma ao cadastrar veiculo:", error);
+
+    if (error.code === "P2002") {
+      let camposDuplicados = [];
+
+      // Pode vir string ou array
+      const target = error.meta?.target;
+
+      if (Array.isArray(target)) {
+        camposDuplicados = target;
+      } else if (typeof target === "string") {
+        // traduz constraints conhecidas
+        if (target.includes("placa")) camposDuplicados.push("placa");
+        if (target.includes("chassi")) camposDuplicados.push("chassi");
+      }
+
+      if (camposDuplicados.length > 0) {
+        throw new Error(
+          `Já existe um veículo com esta(e): ${camposDuplicados.join(", ")}.`
+        );
+      }
+
+      throw new Error("Já existe um veículo com este campo único.");
+    }
+
+    throw new Error("Erro ao cadastrar o veículo.");
+  }
 };
+
+
 exports.listarVeiculosDoCliente = async (clienteId) => {
   try {
     const veiculos = await prisma.veiculo.findMany({
