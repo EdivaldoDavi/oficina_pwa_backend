@@ -5,4 +5,11 @@ const { protect } = require('../midlleware/authMidleware'); // Importe o middlew
 
 router.post('/', protect, servicesController.criarService);
 router.get('/', servicesController.listarTodosOsServices);
+// Editar orçamento (PUT)
+console.log("servicesController:", servicesController);
+
+router.put('/:id', protect, servicesController.editarServico);
+
+// Deletar orçamento (DELETE)
+router.delete('/:id', protect, servicesController.deletarServico);
 module.exports = router;

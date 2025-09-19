@@ -10,7 +10,6 @@ const userRoutes = require('./routes/userRoutes');
 const veiculoRoutes = require('./routes/veiculoRoutes');
 const orcamentoRoutes = require('./routes/orcamentoRoutes');
 const servicesRoutes = require('./routes/servicesRoutes');
-
 dotenv.config();
 
 const app = express();
